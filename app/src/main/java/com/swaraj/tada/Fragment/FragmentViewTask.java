@@ -55,7 +55,7 @@ public class FragmentViewTask extends Fragment {
         taskQueryHandler = new TaskQueryHandler(getContext().getContentResolver());
 
         tasksList = new ArrayList<>();
-       readDbDataRxJava();
+        readDbDataRxJava();
 
 
         taskAdapter = new AllTaskAdapter(getContext(), tasksList);
@@ -70,7 +70,6 @@ public class FragmentViewTask extends Fragment {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map(new Function<Cursor, List<Tasks>>() {
-
                     @Override
                     public List<Tasks> apply(@NonNull Cursor cursor) throws Exception {
                         List<Tasks> taskses = new ArrayList<Tasks>();
@@ -90,7 +89,15 @@ public class FragmentViewTask extends Fragment {
                         }
                         return taskses;
                     }
-                }).subscribe(getListObserver());
+                })
+                .flatMap(new Function<List<Tasks>, ObservableSource<Tasks>>() {
+
+                    @Override
+                    public ObservableSource<Tasks> apply(@NonNull List<Tasks> taskses) throws Exception {
+                        return Observable.fromIterable(taskses);
+                    }
+                })
+                .subscribe(getTaskObserver());
     }
 
     private Observer<Cursor> getObserver() {
@@ -117,6 +124,30 @@ public class FragmentViewTask extends Fragment {
         };
     }
 
+    private Observer<Tasks> getTaskObserver() {
+        return new Observer<Tasks>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(@NonNull Tasks tasks) {
+                tasksList.add(tasks);
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+                taskAdapter.notifyDataSetChanged();
+            }
+        };
+    }
+
     private Observer<List<Tasks>> getListObserver() {
         return new Observer<List<Tasks>>() {
             @Override
@@ -129,7 +160,6 @@ public class FragmentViewTask extends Fragment {
                 for (Tasks tasks : taskses) {
                     tasksList.add(tasks);
                 }
-//                tasksList = taskses;
                 taskAdapter.notifyDataSetChanged();
             }
 
