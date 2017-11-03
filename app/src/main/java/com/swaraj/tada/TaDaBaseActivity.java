@@ -27,7 +27,7 @@ public class TaDaBaseActivity extends AppCompatActivity implements LoadFragmentC
 
     @Override
     public void loadFragment(Bundle bundle, int fragmentId, String tag) {
-        loader.show();
+//        loader.show();
         if(fragmentId == 1) {
             FragmentViewTask fragmentViewTask = FragmentViewTask.getInstance();
             getSupportFragmentManager().beginTransaction().replace(R.id.container,fragmentViewTask).commit();

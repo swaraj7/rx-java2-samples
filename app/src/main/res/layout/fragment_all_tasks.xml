@@ -57,6 +57,18 @@
 
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/loadRxJava"
+        android:background="#e96125"
+        android:text="rxJava"
+        android:padding="12dp"
+        android:layout_margin="4dp"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+
+
 
 
 

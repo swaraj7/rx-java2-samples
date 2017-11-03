@@ -20,6 +20,16 @@ import com.swaraj.tada.db.TaskQueryHandler;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
+
 /**
  * Created by swaraj on 01/11/17
  */
@@ -45,7 +55,7 @@ public class FragmentViewTask extends Fragment {
         taskQueryHandler = new TaskQueryHandler(getContext().getContentResolver());
 
         tasksList = new ArrayList<>();
-        updateTaskList();
+       readDbDataRxJava();
 
 
         taskAdapter = new AllTaskAdapter(getContext(), tasksList);
@@ -55,8 +65,100 @@ public class FragmentViewTask extends Fragment {
         return v;
     }
 
+    private void readDbDataRxJava() {
+        Observable.just(makeQuery())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .map(new Function<Cursor, List<Tasks>>() {
+
+                    @Override
+                    public List<Tasks> apply(@NonNull Cursor cursor) throws Exception {
+                        List<Tasks> taskses = new ArrayList<Tasks>();
+                        if (cursor != null) {
+                            String data, eTime, rTime, pr;
+                            while (cursor.moveToNext()) {
+                                data = cursor.getString(cursor.getColumnIndex(TaskContract.AllTasks.CONTENT));
+                                eTime = cursor.getString(cursor.getColumnIndex(TaskContract.AllTasks.ENTRY_TIME));
+                                rTime = cursor.getString(cursor.getColumnIndex(TaskContract.AllTasks.REMINDER_TIME));
+                                pr = cursor.getString(cursor.getColumnIndex(TaskContract.AllTasks.PRIORITY));
+
+                                Tasks task = new Tasks(data, eTime, rTime, pr);
+                                taskses.add(task);
+
+                            }
+                            cursor.close();
+                        }
+                        return taskses;
+                    }
+                }).subscribe(getListObserver());
+    }
+
+    private Observer<Cursor> getObserver() {
+        return new Observer<Cursor>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(@NonNull Cursor cursor) {
+
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        };
+    }
+
+    private Observer<List<Tasks>> getListObserver() {
+        return new Observer<List<Tasks>>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(@NonNull List<Tasks> taskses) {
+                for (Tasks tasks : taskses) {
+                    tasksList.add(tasks);
+                }
+//                tasksList = taskses;
+                taskAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        };
+    }
+
+    private Cursor makeQuery() {
+        String[] projection = new String[]{
+                TaskContract.AllTasks.CONTENT,
+                TaskContract.AllTasks.ENTRY_TIME,
+                TaskContract.AllTasks.REMINDER_TIME,
+                TaskContract.AllTasks.PRIORITY
+        };
+
+        return getContext().getContentResolver().query(TaskContract.AllTasks.CONTENT_URI, projection, null, null, null);
+    }
+
 
     private void updateTaskList() {
+
         String[] projection = new String[]{
                 TaskContract.AllTasks.CONTENT,
                 TaskContract.AllTasks.ENTRY_TIME,
@@ -69,7 +171,7 @@ public class FragmentViewTask extends Fragment {
                 null, null, new TaskQueryHandler.QueryCompleteListener() {
                     @Override
                     public void onQueryComplete(int token, Object cookie, Cursor cursor) {
-                        if (cursor != null){
+                        if (cursor != null) {
                             String data, eTime, rTime, pr;
                             while (cursor.moveToNext()) {
                                 data = cursor.getString(cursor.getColumnIndex(TaskContract.AllTasks.CONTENT));
@@ -91,7 +193,6 @@ public class FragmentViewTask extends Fragment {
                 });
 
     }
-
 
 
 }
