@@ -1,7 +1,9 @@
 package com.swaraj.tada.Fragment;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -12,6 +14,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.swaraj.tada.Activity.RxJavaActivity;
 import com.swaraj.tada.Interfaces.LoadFragmentCallback;
 import com.swaraj.tada.R;
 import com.swaraj.tada.TaDaBaseActivity;
@@ -21,10 +24,12 @@ import com.swaraj.tada.db.TaskQueryHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
@@ -39,7 +44,7 @@ import io.reactivex.functions.Function3;
 public class FragmentAddTasks extends Fragment {
 
     EditText text, entryDate, reminderDate, mpriority;
-    TextView submit, showTasks;
+    TextView submit, showTasks, loadRxJava;
 //    RecyclerView recyclerView;
 //    AllTaskAdapter taskAdapter;
 
@@ -70,6 +75,7 @@ public class FragmentAddTasks extends Fragment {
         mpriority = (EditText) v.findViewById(R.id.task_priority);
         submit = (TextView) v.findViewById(R.id.submit);
         showTasks = (TextView) v.findViewById(R.id.show);
+        loadRxJava = (TextView) v.findViewById(R.id.loadRxJava);
 
 
         asyncQueryHandler = new TaskQueryHandler(getContext().getContentResolver());
@@ -79,9 +85,17 @@ public class FragmentAddTasks extends Fragment {
     }
 
     private void setClickActions() {
-//        setActionForDbOps();
-        setActionForRxButtons();
-        setActionForRxButtons1();
+        setActionForDbOps();
+        setActionToShowTasks();
+//        setActionForRxButtons();
+//        setActionForRxButtons1();
+        loadRxJava.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), RxJavaActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private void setActionForRxButtons() {
@@ -103,6 +117,15 @@ public class FragmentAddTasks extends Fragment {
             @Override
             public void onClick(View v) {
                 doSomethingElse();
+            }
+        });
+    }
+
+    private void setActionToShowTasks() {
+        showTasks.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                parentActivity.loadFragment(null, 1, "show");
             }
         });
     }
@@ -139,8 +162,10 @@ public class FragmentAddTasks extends Fragment {
 
         Observer<String> observer= getObserver();
 
-        Observable.just("Hello Android").subscribe(observer);
-        Observable.just("another parallel observable").subscribe(observer);
+//        Observable.just("Hello Android").subscribe(observer);
+//        Observable.just("another parallel observable").subscribe(observer);
+
+
     }
 
     private void doSomethingElse() {
